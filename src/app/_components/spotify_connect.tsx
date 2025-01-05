@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from "react";
-import { AuthorizationCodeWithPKCEStrategy, SpotifyApi, UserProfile, PlaybackState } from "@spotify/web-api-ts-sdk";
+import { AuthorizationCodeWithPKCEStrategy, SpotifyApi, UserProfile, PlaybackState,  } from "@spotify/web-api-ts-sdk";
 
 const SpotifyConnect = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -15,6 +15,8 @@ const SpotifyConnect = () => {
     );
 
     const spotify = new SpotifyApi(implicitGrantStrategy);
+
+    
     (async () => {
       setProfile(await spotify.currentUser.profile());
       setPlaybackState(await spotify.player.getPlaybackState());
@@ -35,7 +37,7 @@ const SpotifyConnect = () => {
       {playbackState ? (
         <div>
           <h3>Currently Playing</h3>
-          <p>{playbackState.item.name} by {playbackState.item.artists.map(artist => artist.name).join(', ')}</p>
+          <p>{playbackState.item.name} by {playbackState.map(artist => artist.name).join(', ')}</p>
           <img src={playbackState.item.album.images[0]?.url} alt="Album Art" />
         </div>
       ) : (
