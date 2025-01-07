@@ -1,41 +1,23 @@
+import { createInterface } from "~/server/services/djService";
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
-// Mocked DB
-interface Post {
-  id: number;
-  name: string;
-}
-const posts: Post[] = [
-  {
-    id: 1,
-    name: "Hello World",
-  },
-];
+const tokenInput = z.object({
+  token: z.object({
+    access_token: z.string(),
+    token_type: z.string(),
+    expires_in: z.number(),
+    refresh_token: z.string(),
+    expires_at: z.optional(z.string()),
+  })
+});
 
-export const postRouter = createTRPCRouter({
-  hello: publicProcedure
-    .input(z.object({ text: z.string() }))
-    .query(({ input }) => {
-      return {
-        greeting: `Hello ${input.text}`,
-      };
-    }),
-
-  create: publicProcedure
-    .input(z.object({ name: z.string().min(1) }))
+export const spotifyRouter = createTRPCRouter({
+  load: publicProcedure
+    .input(tokenInput)
     .mutation(async ({ input }) => {
-      const post: Post = {
-        id: posts.length + 1,
-        name: input.name,
-      };
-      posts.push(post);
-      
-      return post;
+      const userInterface = await createInterface(input.token);
+      return userInterface;
     }),
-
-  getLatest: publicProcedure.query(() => {
-    return posts.at(-1) ?? null;
-  }),
 });

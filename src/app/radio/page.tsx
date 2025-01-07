@@ -11,20 +11,7 @@ export default function Radio() {
       <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
       Login with Spotify, to listen to the  <span className="text-[hsl(280,100%,70%)]">radio</span> App
       </h1>
-      <button onClick={() => {
-         SpotifyApi.withImplicitGrant(
-          env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID,
-          "https://localhost:3000/radio/app", 
-          [
-            'user-read-private',
-            'user-read-email',
-            'playlist-modify-public',
-            'playlist-modify-private',
-            'user-read-playback-state',
-            'user-modify-playback-state'
-          ]);
-
-      }}>Connect</button>
+      <
     </div>
   </main>
     </HydrateClient>
