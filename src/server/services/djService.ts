@@ -1,10 +1,10 @@
 import { AccessToken } from "@spotify/web-api-ts-sdk";
-import { UserInterface, UserJson } from "./types";
+import { UserJson } from "./types";
 import { composeSpotifyProfile } from "./spotifyService";
 import { saveUser } from "./repositoryService";
 import { getAiInsights } from "./llmService";
 
-export const createInterface = async (accessToken: AccessToken): Promise<UserInterface> => {
+export const createInterface = async (accessToken: AccessToken): Promise<UserJson> => {
   const spotifyProfile = await composeSpotifyProfile(accessToken);
   let aiGeneratedStuff = {}
   if(false) {
@@ -14,9 +14,6 @@ export const createInterface = async (accessToken: AccessToken): Promise<UserInt
     spotifyProfile,
     aiGeneratedStuff
   }
-  const id = "test";
-  return {
-    id,
-    ...user
-  }
+  return user;
+
 };

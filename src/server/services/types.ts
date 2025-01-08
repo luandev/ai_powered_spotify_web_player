@@ -29,6 +29,3 @@ export interface SpotifyProfile {
   playQueue: Array<UserTrack>;
   playHistory: Array<UserTrack>;
 }
-
-export interface UserInterface { 
-}

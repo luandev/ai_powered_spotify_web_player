@@ -1,33 +1,22 @@
-import { AccessToken } from "@spotify/web-api-ts-sdk";
-import React, { useEffect, useState } from "react";
+import React, {  useState } from "react";
+import { SpotifyPlayerProvider, useSpotifyPlayer } from "./SpotifyPlayerContext";
+import { UserJson } from "~/server/services/types";
 
 
 
-const SpotifyPlayer = ({ token }: {token: AccessToken | null}) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(30); // in seconds
-  const duration = 200; // in seconds
+const SpotifyPlayer = ({ profile }: {profile: UserJson | null}) => {
+  const [userProfile, setProfile] = useState(profile?.spotifyProfile);
+  const [isPlaying, setIsPlaying] = useState(userProfile?.playbackState.is_playing);
+  const [currentTime, setCurrentTime] = useState((userProfile?.playbackState.progress_ms ?? 0) / 1000); // in seconds
+  const duration = (userProfile?.playbackState?.item?.duration_ms ?? 0) / 1000; // in seconds
+  const { player } = useSpotifyPlayer();
 
   const togglePlayPause = () => {
+    if (player) {
+      player.togglePlay();
+    }
     setIsPlaying(!isPlaying);
   };
-
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://sdk.scdn.co/spotify-player.js";
-    script.async = true;
-
-    document.body.appendChild(script);
-    
-    window.onSpotifyWebPlaybackSDKReady = () => {
-      const player = new window.Spotify.Player({
-          name: 'Web Playback SDK',
-          getOAuthToken: cb => { cb(token); },
-          volume: 0.5
-      });
-      console.log("Player",player);
-    };
-  }, []);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -37,12 +26,11 @@ const SpotifyPlayer = ({ token }: {token: AccessToken | null}) => {
 
   const progressWidth = `${(currentTime / duration) * 100}%`;
 
-  if(!token) { 
+  if(!profile) { 
     return <div>connecting to spotify...</div>;
   }
 
   return (
-
     <div className="bg-gray-800 text-white min-h-screen flex justify-center items-center">
       <div className="bg-gray-900 rounded-lg shadow-lg w-96 p-6">
         <div className="text-center mb-4">
