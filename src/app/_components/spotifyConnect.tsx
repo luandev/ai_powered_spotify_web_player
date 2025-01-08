@@ -35,6 +35,7 @@ const SpotifyConnect = ({ onConnect, onToken }: SpotifyConnectComponent) => {
   const handleButton = async (token: AccessToken) => {
     handleToken(token);
     handleUserInterface(token);
+    
   };
 
   const connectToSpotify = async () => {
@@ -63,12 +64,12 @@ const SpotifyConnect = ({ onConnect, onToken }: SpotifyConnectComponent) => {
   return (
     <div>
       {!profile && <button onClick={() => setShouldConnect(true)}>Connect to Spotify</button>}
-      {profile && (
+      {/* {profile && (
         <div>
           <h2>Profile JSON:</h2>
           <pre>{JSON.stringify(profile, null, 2)}</pre>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

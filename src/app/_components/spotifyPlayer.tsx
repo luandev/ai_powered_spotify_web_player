@@ -1,5 +1,7 @@
 import { AccessToken } from "@spotify/web-api-ts-sdk";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+
+
 
 const SpotifyPlayer = ({ token }: {token: AccessToken | null}) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -9,6 +11,23 @@ const SpotifyPlayer = ({ token }: {token: AccessToken | null}) => {
   const togglePlayPause = () => {
     setIsPlaying(!isPlaying);
   };
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://sdk.scdn.co/spotify-player.js";
+    script.async = true;
+
+    document.body.appendChild(script);
+    
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      const player = new window.Spotify.Player({
+          name: 'Web Playback SDK',
+          getOAuthToken: cb => { cb(token); },
+          volume: 0.5
+      });
+      console.log("Player",player);
+    };
+  }, []);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -23,6 +42,7 @@ const SpotifyPlayer = ({ token }: {token: AccessToken | null}) => {
   }
 
   return (
+
     <div className="bg-gray-800 text-white min-h-screen flex justify-center items-center">
       <div className="bg-gray-900 rounded-lg shadow-lg w-96 p-6">
         <div className="text-center mb-4">
