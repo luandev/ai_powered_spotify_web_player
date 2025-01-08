@@ -1,7 +1,7 @@
 import ollama from 'ollama'
 import { SpotifyProfile } from './types';
 
-export const setupAgent = async (prompt: SpotifyProfile): Promise<string> => {
+export const getAiInsights = async (prompt: SpotifyProfile): Promise<string> => {
   const response = await ollama.chat({
     model: 'llama3.1',
     messages: [

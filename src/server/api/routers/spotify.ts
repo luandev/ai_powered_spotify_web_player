@@ -9,7 +9,7 @@ const tokenInput = z.object({
     token_type: z.string(),
     expires_in: z.number(),
     refresh_token: z.string(),
-    expires_at: z.optional(z.string()),
+    expires: z.optional(z.number()),
   })
 });
 
@@ -18,6 +18,7 @@ export const spotifyRouter = createTRPCRouter({
     .input(tokenInput)
     .mutation(async ({ input }) => {
       const userInterface = await createInterface(input.token);
+      console.log(userInterface);
       return userInterface;
     }),
 });

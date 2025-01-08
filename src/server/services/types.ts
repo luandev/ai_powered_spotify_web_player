@@ -8,7 +8,7 @@ export type UserJson =  {
 export interface SpotifyProfile {
   profile: UserProfile;
   playbackState: PlaybackState;
-  followedArtists: FollowedArtists;
+  followedArtists?: FollowedArtists;
 }
 
 export interface UserInterface { 
