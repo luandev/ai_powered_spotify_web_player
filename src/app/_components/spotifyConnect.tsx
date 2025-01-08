@@ -22,7 +22,14 @@ const SpotifyConnect = ({ onConnect }: { onConnect: (profile: UserInterface) => 
     SpotifyApi.performUserAuthorization(
       process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID,
       "http://localhost:3000/radio",
-      ['user-read-private', 'user-read-email', 'playlist-modify-public', 'playlist-modify-private', 'user-read-playback-state', 'user-modify-playback-state', 'user-follow-read'],
+      [
+        'user-read-email',  
+        'user-read-private',
+        'user-follow-read',
+        'user-read-playback-state', 
+        'user-read-currently-playing',
+        'user-read-recently-played', 
+      ],
       handleToken
     );
   };
@@ -36,6 +43,12 @@ const SpotifyConnect = ({ onConnect }: { onConnect: (profile: UserInterface) => 
   return (
     <div>
       {!profile && <button onClick={() => setShouldConnect(true)}>Connect to Spotify</button>}
+      {profile && (
+        <div>
+          <h2>Profile JSON:</h2>
+          <pre>{JSON.stringify(profile, null, 2)}</pre>
+        </div>
+      )}
     </div>
   );
 };
