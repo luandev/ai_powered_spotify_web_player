@@ -35,7 +35,6 @@ const SpotifyConnect = ({ onConnect, onToken }: SpotifyConnectComponent) => {
   const handleButton = async (token: AccessToken) => {
     handleToken(token);
     handleUserInterface(token);
-    
   };
 
   const connectToSpotify = async () => {

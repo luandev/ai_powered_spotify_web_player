@@ -7,17 +7,17 @@ const SpotifyPlayer: React.FC<{name: string}> = ({name}) => {
   const [state, setState] = useState<Spotify.PlaybackState | null>(null);
   const [isLoaded, setLoaded] = useState(false);
 
-  const loadFromSpotify = async () => {
+  const loadState = async () => {
     const state = await player.getCurrentState();
     setState(state);
     player.on("player_state_changed", (state) => {
       setState(state);
     });
-    setLoaded(true);
   };
 
   useEffect(() => {
-    loadFromSpotify();
+    loadState()
+      .then(() => setLoaded(true));
   }, []);
 
   const formatTime = (seconds: number | undefined = 0) => {
@@ -32,9 +32,27 @@ const SpotifyPlayer: React.FC<{name: string}> = ({name}) => {
     return <div>Loading...</div>;
   }
 
-  if (!state) {
-    return <div>No state...</div>;
-  }
+  const defaultState = {
+    paused: true,
+    duration: 0,
+    loading: true,
+    position: 0,
+    repeat_mode: 0,
+    shuffle: false,
+    timestamp: 0,
+    playback_quality: "",
+    track_window: {
+      current_track: {
+        name: "",
+        artists: [],
+        album: {
+          images: []
+        }
+      },
+      previous_tracks: [],
+      next_tracks: []
+    }
+  };
 
   const { 
     paused, 
@@ -45,24 +63,21 @@ const SpotifyPlayer: React.FC<{name: string}> = ({name}) => {
     shuffle, 
     timestamp,
     playback_quality, 
-    track_window: {
-      current_track, 
-      next_tracks, 
-      previous_tracks
-    }, 
-  } = state;
+    track_window 
+  } = state || defaultState;
+  
+  const current_track = track_window?.current_track;
+  const next_tracks = track_window?.next_tracks || [];
+  const previous_tracks = track_window?.previous_tracks || [];
 
-  const {
-    togglePlay,
-    getVolume,
-    nextTrack,
-    previousTrack,
-    seek,
-    setVolume,
-    pause,
-    resume,
-  } = player;
+  //inneficient waut to refresh the interface
+  //TODO: use a local state to update the interface
 
+  const refreshState = (action: () => Promise<void>) => {
+    action()
+      .then(() => loadState())
+      .catch((error) => console.error("Error performing action:", error));
+  }
   return (
     <div className="bg-gray-800 text-white min-h-screen flex justify-center items-center">
       <div className="bg-gray-900 rounded-lg shadow-lg w-96 p-6">
@@ -89,7 +104,7 @@ const SpotifyPlayer: React.FC<{name: string}> = ({name}) => {
           <p className="text-gray-400 text-sm">{formatTime(duration)}</p>
         </div>
         <div className="flex justify-center gap-4 mb-4">
-          <button className="text-gray-400 hover:text-white" onClick={previousTrack}>
+          <button className="text-gray-400 hover:text-white" onClick={player.previousTrack}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="w-6 h-6"
@@ -107,7 +122,7 @@ const SpotifyPlayer: React.FC<{name: string}> = ({name}) => {
           </button>
           <button
             className="text-gray-400 hover:text-white"
-            onClick={togglePlay}
+            onClick={() => refreshState(() => player.togglePlay())}
           >
             {paused ? (
               <svg
@@ -136,7 +151,7 @@ const SpotifyPlayer: React.FC<{name: string}> = ({name}) => {
               </svg>
             )}
           </button>
-          <button className="text-gray-400 hover:text-white" onClick={nextTrack}>
+          <button className="text-gray-400 hover:text-white" onClick={player.nextTrack}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="w-6 h-6"
@@ -154,8 +169,8 @@ const SpotifyPlayer: React.FC<{name: string}> = ({name}) => {
           </button>
         </div>
         <div className="flex justify-between mb-4">
-          <button className="text-gray-400 hover:text-white" onClick={() => setVolume(0.5)}>Set Volume to 50%</button>
-          <button className="text-gray-400 hover:text-white" onClick={() => seek(position + 15000)}>Seek +15s</button>
+          <button className="text-gray-400 hover:text-white" onClick={() => refreshState(() => player.setVolume(0.5))}>Set Volume to 50%</button>
+          <button className="text-gray-400 hover:text-white" onClick={() => player.seek(position + 15000)}>Seek +15s</button>
         </div>
         <div className="text-center mb-4">
           <p className="text-gray-400">Repeat Mode: {repeat_mode}</p>
