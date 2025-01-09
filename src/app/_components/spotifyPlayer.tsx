@@ -1,8 +1,5 @@
 import React, {  useEffect, useState } from "react";
-import { SpotifyPlayerProvider, useSpotifyPlayer } from "./SpotifyPlayerContext";
-import { UserJson } from "~/server/services/types";
-
-
+import { useSpotifyPlayer } from "./SpotifyPlayerContext";
 
 const SpotifyPlayer = ({  }: {}) => {
   const { player } = useSpotifyPlayer();
@@ -11,23 +8,17 @@ const SpotifyPlayer = ({  }: {}) => {
   const [isLoaded, setLoaded] = useState(false);
 
   const loadFromSpotify = async () => {
-    if(player) {
-      const state = await player.getCurrentState();
+    const state = await player.getCurrentState();
+    setState(state);
+    player.on("player_state_changed", (state) => {
       setState(state);
-      player.on("player_state_changed", (state) => {
-        setState(state);
-      });
-      setLoaded(true);
-    }
+    });
+    setLoaded(true);
   };
 
   useEffect(() => {
     loadFromSpotify();
-  }, [player]);
-
-  const togglePlayPause = () => {
-    player!.togglePlay();
-  };
+  }, []);
 
   const formatTime = (seconds: number | undefined = 0) => {
     const minutes = Math.floor(seconds / 60);
@@ -41,6 +32,37 @@ const SpotifyPlayer = ({  }: {}) => {
     return <div>Loading...</div>;
   }
 
+  if (!state) {
+    return <div>no state...</div>;
+  }
+
+  const { 
+    paused, 
+    duration, 
+    loading, 
+    position, 
+    repeat_mode, 
+    shuffle, 
+    timestamp,
+    playback_quality, 
+    track_window: {
+      current_track, 
+      next_tracks, 
+      previous_tracks
+    }, 
+  } = state;
+
+  const {
+    togglePlay,
+    getVolume,
+    getCurrentState,
+    nextTrack,
+    previousTrack,
+    seek,
+    setVolume,
+    pause,
+    resume,
+  } = player;
 
   return (
     <div className="bg-gray-800 text-white min-h-screen flex justify-center items-center">

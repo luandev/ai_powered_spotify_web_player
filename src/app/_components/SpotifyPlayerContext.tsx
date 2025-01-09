@@ -2,7 +2,7 @@ import { AccessToken } from '@spotify/web-api-ts-sdk';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface SpotifyPlayerContextProps {
-  player: Spotify.Player | null;
+  player: Spotify.Player;
 }
 
 const SpotifyPlayerContext = createContext<SpotifyPlayerContextProps | undefined>(undefined);
@@ -63,9 +63,13 @@ export const SpotifyPlayerProvider: React.FC<{ accessToken: string, name: string
     };
   }, [token]);
 
+  if (player === null) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <SpotifyPlayerContext.Provider value={{ player }}>
-      {player && children}
+      {children}
     </SpotifyPlayerContext.Provider>
   );
 };
