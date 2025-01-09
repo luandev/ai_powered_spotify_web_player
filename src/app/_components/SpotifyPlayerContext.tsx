@@ -63,13 +63,13 @@ export const SpotifyPlayerProvider: React.FC<{ accessToken: string, name: string
     };
   }, [token]);
 
-  if (player === null) {
-    return <div>Loading...</div>;
-  }
-
-  return (
-    <SpotifyPlayerContext.Provider value={{ player }}>
-      {children}
-    </SpotifyPlayerContext.Provider>
+  return ( 
+    <React.Fragment>
+      {player && 
+      <SpotifyPlayerContext.Provider value={{ player: player! }}>
+        {children}
+      </SpotifyPlayerContext.Provider>
+      }
+    </React.Fragment>
   );
 };

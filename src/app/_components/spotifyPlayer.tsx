@@ -1,7 +1,7 @@
-import React, {  useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSpotifyPlayer } from "./SpotifyPlayerContext";
 
-const SpotifyPlayer = ({  }: {}) => {
+const SpotifyPlayer: React.FC<{name: string}> = ({name}) => {
   const { player } = useSpotifyPlayer();
 
   const [state, setState] = useState<Spotify.PlaybackState | null>(null);
@@ -26,14 +26,14 @@ const SpotifyPlayer = ({  }: {}) => {
     return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
   };
 
-  const progressWidth = `${((state?.timestamp || 0) / (state?.duration || 0)) * 100}%`;
+  const progressWidth = `${((state?.position || 0) / (state?.duration || 0)) * 100}%`;
 
   if (!isLoaded) {
     return <div>Loading...</div>;
   }
 
   if (!state) {
-    return <div>no state...</div>;
+    return <div>No state...</div>;
   }
 
   const { 
@@ -55,7 +55,6 @@ const SpotifyPlayer = ({  }: {}) => {
   const {
     togglePlay,
     getVolume,
-    getCurrentState,
     nextTrack,
     previousTrack,
     seek,
@@ -68,28 +67,29 @@ const SpotifyPlayer = ({  }: {}) => {
     <div className="bg-gray-800 text-white min-h-screen flex justify-center items-center">
       <div className="bg-gray-900 rounded-lg shadow-lg w-96 p-6">
         <div className="text-center mb-4">
+          <h3>{name}</h3>
           <h2 className="text-xl font-bold">Now Playing</h2>
-          <p className="text-gray-400">Artist - Song Title</p>
+          <p className="text-gray-400">{current_track.artists.map(artist => artist.name).join(', ')} - {current_track.name}</p>
         </div>
         <div className="flex justify-center mb-4">
           <img
-            src="https://via.placeholder.com/150"
+            src={current_track.album.images[0]?.url || "https://via.placeholder.com/150"}
             alt="Album Art"
             className="w-48 h-48 rounded-md"
           />
         </div>
         <div className="flex items-center justify-between mb-4">
-          <p className="text-gray-400 text-sm">{formatTime(state?.timestamp)}</p>
+          <p className="text-gray-400 text-sm">{formatTime(position)}</p>
           <div className="w-full bg-gray-700 h-1 mx-2 rounded">
             <div
               className="bg-blue-500 h-1 rounded"
               style={{ width: progressWidth }}
             ></div>
           </div>
-          <p className="text-gray-400 text-sm">{formatTime(state?.duration)}</p>
+          <p className="text-gray-400 text-sm">{formatTime(duration)}</p>
         </div>
-        <div className="flex justify-center gap-4">
-          <button className="text-gray-400 hover:text-white">
+        <div className="flex justify-center gap-4 mb-4">
+          <button className="text-gray-400 hover:text-white" onClick={previousTrack}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="w-6 h-6"
@@ -107,9 +107,9 @@ const SpotifyPlayer = ({  }: {}) => {
           </button>
           <button
             className="text-gray-400 hover:text-white"
-            onClick={togglePlayPause}
+            onClick={togglePlay}
           >
-            {state?.paused ? (
+            {paused ? (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="w-8 h-8"
@@ -136,7 +136,7 @@ const SpotifyPlayer = ({  }: {}) => {
               </svg>
             )}
           </button>
-          <button className="text-gray-400 hover:text-white">
+          <button className="text-gray-400 hover:text-white" onClick={nextTrack}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="w-6 h-6"
@@ -152,6 +152,27 @@ const SpotifyPlayer = ({  }: {}) => {
               />
             </svg>
           </button>
+        </div>
+        <div className="flex justify-between mb-4">
+          <button className="text-gray-400 hover:text-white" onClick={() => setVolume(0.5)}>Set Volume to 50%</button>
+          <button className="text-gray-400 hover:text-white" onClick={() => seek(position + 15000)}>Seek +15s</button>
+        </div>
+        <div className="text-center mb-4">
+          <p className="text-gray-400">Repeat Mode: {repeat_mode}</p>
+          <p className="text-gray-400">Shuffle: {shuffle ? "On" : "Off"}</p>
+          <p className="text-gray-400">Playback Quality: {playback_quality}</p>
+        </div>
+        <div className="text-center mb-4">
+          <h3 className="text-lg font-bold">Next Tracks</h3>
+          {next_tracks.map(track => (
+            <p key={track.id} className="text-gray-400">{track.name} - {track.artists.map(artist => artist.name).join(', ')}</p>
+          ))}
+        </div>
+        <div className="text-center mb-4">
+          <h3 className="text-lg font-bold">Previous Tracks</h3>
+          {previous_tracks.map(track => (
+            <p key={track.id} className="text-gray-400">{track.name} - {track.artists.map(artist => artist.name).join(', ')}</p>
+          ))}
         </div>
       </div>
     </div>

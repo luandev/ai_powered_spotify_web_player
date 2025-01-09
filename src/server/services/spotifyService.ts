@@ -12,7 +12,7 @@ export const composeSpotifyProfile = async (accessToken: AccessToken): Promise<S
 
   return {
     profile,
-    playbackState: {
+    playbackState: playbackState && {
       is_playing: playbackState.is_playing,
       progress_ms: playbackState.progress_ms,
       currently_playing_type: playbackState.currently_playing_type,

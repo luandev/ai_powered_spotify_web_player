@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { SpotifyApi, AccessToken } from "@spotify/web-api-ts-sdk";
 import { UserInterface } from "~/server/services/types";
 import { api } from "~/trpc/react";
@@ -62,15 +62,22 @@ const SpotifyConnect = ({ onConnect, onToken }: SpotifyConnectComponent) => {
   }, [shouldConnect]);
 
   return (
-    <div>
-      {!profile && <button onClick={() => setShouldConnect(true)}>Connect to Spotify</button>}
-      {/* {profile && (
-        <div>
-          <h2>Profile JSON:</h2>
-          <pre>{JSON.stringify(profile, null, 2)}</pre>
-        </div>
-      )} */}
-    </div>
+    <Fragment>
+      {!profile && (
+         <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-purple-500 to-blue-500 text-white">
+         <div className="text-center">
+           <h1 className="text-5xl font-bold mb-4">Welcome to The Spirit of Radio</h1>
+           <p className="text-lg mb-8">Connect to Spotify and enjoy your favorite music</p>
+           <button
+             onClick={setShouldConnect.bind(null, true)}
+             className="bg-white text-purple-500 font-semibold py-2 px-4 rounded-full shadow-lg hover:bg-gray-200 transition duration-300"
+           >
+             Connect to Spotify
+           </button>
+         </div>
+       </div>
+      )}
+    </Fragment>
   );
 };
 
