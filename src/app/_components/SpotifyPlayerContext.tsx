@@ -2,7 +2,7 @@ import { AccessToken } from '@spotify/web-api-ts-sdk';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface SpotifyPlayerContextProps {
-  player: any | null;
+  player: Spotify.Player | null;
 }
 
 const SpotifyPlayerContext = createContext<SpotifyPlayerContextProps | undefined>(undefined);
@@ -16,7 +16,7 @@ export const useSpotifyPlayer = () => {
 };
 
 export const SpotifyPlayerProvider: React.FC<{ accessToken: string, name: string, volume: number, children: ReactNode }> = ({ accessToken: token, name, volume, children }) => {
-  const [player, setPlayer] = useState<any | null>(null);
+  const [player, setPlayer] = useState<Spotify.Player | null>(null);
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -54,14 +54,18 @@ export const SpotifyPlayerProvider: React.FC<{ accessToken: string, name: string
         console.error(message);
       });
 
-      player.connect();
       setPlayer(player);
+      player.connect();
+
+      return () => {
+        player.disconnect();
+      };
     };
   }, [token]);
 
   return (
     <SpotifyPlayerContext.Provider value={{ player }}>
-      {children}
+      {player && children}
     </SpotifyPlayerContext.Provider>
   );
 };

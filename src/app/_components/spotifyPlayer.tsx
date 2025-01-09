@@ -1,34 +1,46 @@
-import React, {  useState } from "react";
+import React, {  useEffect, useState } from "react";
 import { SpotifyPlayerProvider, useSpotifyPlayer } from "./SpotifyPlayerContext";
 import { UserJson } from "~/server/services/types";
 
 
 
-const SpotifyPlayer = ({ profile }: {profile: UserJson | null}) => {
-  const [userProfile, setProfile] = useState(profile?.spotifyProfile);
-  const [isPlaying, setIsPlaying] = useState(userProfile?.playbackState.is_playing);
-  const [currentTime, setCurrentTime] = useState((userProfile?.playbackState.progress_ms ?? 0) / 1000); // in seconds
-  const duration = (userProfile?.playbackState?.item?.duration_ms ?? 0) / 1000; // in seconds
+const SpotifyPlayer = ({  }: {}) => {
   const { player } = useSpotifyPlayer();
 
-  const togglePlayPause = () => {
-    if (player) {
-      player.togglePlay();
+  const [state, setState] = useState<Spotify.PlaybackState | null>(null);
+  const [isLoaded, setLoaded] = useState(false);
+
+  const loadFromSpotify = async () => {
+    if(player) {
+      const state = await player.getCurrentState();
+      setState(state);
+      player.on("player_state_changed", (state) => {
+        setState(state);
+      });
+      setLoaded(true);
     }
-    setIsPlaying(!isPlaying);
   };
 
-  const formatTime = (seconds: number) => {
+  useEffect(() => {
+    loadFromSpotify();
+  }, [player]);
+
+  const togglePlayPause = () => {
+    player!.togglePlay();
+  };
+
+  const formatTime = (seconds: number | undefined = 0) => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
   };
 
-  const progressWidth = `${(currentTime / duration) * 100}%`;
+  const progressWidth = `${((state?.timestamp || 0) / (state?.duration || 0)) * 100}%`;
 
-  if(!profile) { 
-    return <div>connecting to spotify...</div>;
+  if (!isLoaded) {
+    return <div>Loading...</div>;
   }
+
 
   return (
     <div className="bg-gray-800 text-white min-h-screen flex justify-center items-center">
@@ -45,14 +57,14 @@ const SpotifyPlayer = ({ profile }: {profile: UserJson | null}) => {
           />
         </div>
         <div className="flex items-center justify-between mb-4">
-          <p className="text-gray-400 text-sm">{formatTime(currentTime)}</p>
+          <p className="text-gray-400 text-sm">{formatTime(state?.timestamp)}</p>
           <div className="w-full bg-gray-700 h-1 mx-2 rounded">
             <div
               className="bg-blue-500 h-1 rounded"
               style={{ width: progressWidth }}
             ></div>
           </div>
-          <p className="text-gray-400 text-sm">{formatTime(duration)}</p>
+          <p className="text-gray-400 text-sm">{formatTime(state?.duration)}</p>
         </div>
         <div className="flex justify-center gap-4">
           <button className="text-gray-400 hover:text-white">
@@ -75,7 +87,7 @@ const SpotifyPlayer = ({ profile }: {profile: UserJson | null}) => {
             className="text-gray-400 hover:text-white"
             onClick={togglePlayPause}
           >
-            {isPlaying ? (
+            {state?.paused ? (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="w-8 h-8"
