@@ -1,9 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { useSpotifyToken } from './spotifyConnectContext';
+import { SpotifyPlayerContextProps } from './types';
 
-interface SpotifyPlayerContextProps {
-  player: Spotify.Player | null;
-}
 
 const SpotifyPlayerContext = createContext<SpotifyPlayerContextProps | undefined>(undefined);
 

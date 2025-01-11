@@ -1,59 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useSpotifyPlayer } from "./spotifyPlayerContext";
-
-type RadioTrackProps = {
-  id: string;
-  name: string;
-  artists: { name: string }[];
-  album: {
-    name: string;
-    uri: string;
-    images: { url: string }[];
-  };
-};
-
-type RadioTrackWindowProps = {
-  current_track: RadioTrackProps;
-  previous_tracks: RadioTrackProps[];
-  next_tracks: RadioTrackProps[];
-};
-
-type RadioPlayerProps = {
-  paused: boolean;
-  duration: number;
-  loading: boolean;
-  position: number;
-  repeat_mode: number;
-  shuffle: boolean;
-  timestamp: number;
-  playback_quality: string;
-  track_window: RadioTrackWindowProps;
-};
-
-const defaultState: RadioPlayerProps = {
-  paused: true,
-  duration: 0,
-  loading: true,
-  position: 0,
-  repeat_mode: 0,
-  shuffle: false,
-  timestamp: 0,
-  playback_quality: "",
-  track_window: {
-    current_track: {
-      id: "",
-      name: "",
-      artists: [],
-      album: {
-        name: "",
-        uri: "",
-        images: []
-      }
-    },
-    previous_tracks: [],
-    next_tracks: []
-  }
-};
+import AlbumArt from "./playerComponents/albumArt";
+import { defaultState, RadioPlayerProps, RadioTrackProps } from "./types";
+import RadioButtons from "./playerComponents/radioButtons";
 
 const SpotifyPlayer: React.FC<{ name: string }> = ({ name }) => {
   const { player } = useSpotifyPlayer();
@@ -173,12 +122,12 @@ const SpotifyPlayer: React.FC<{ name: string }> = ({ name }) => {
     }
   } = state;
 
-  if (!isLoaded || loading || current_track.name === "") {
+  if (!isLoaded || current_track.name === "") {
     return <>
-      <div className="bg-gray-800 text-white min-h-screen flex justify-center items-center">
+      {/* <div className="bg-gray-800 text-white min-h-screen flex justify-center items-center">
         <div className="bg-gray-900 rounded-lg shadow-lg w-96 animate-pulse p-6">
         </div>
-      </div>
+      </div> */}
     </>;
   }
 
@@ -191,86 +140,20 @@ const SpotifyPlayer: React.FC<{ name: string }> = ({ name }) => {
           <p className="text-gray-400">{current_track.artists.map(artist => artist.name).join(', ')} - {current_track.name}</p>
         </div>
         <div className="flex justify-center mb-4">
-          <img
-            src={current_track.album.images[0]?.url || "https://via.placeholder.com/150"}
-            alt="Album Art"
-            className="w-48 h-48 rounded-md"
-          />
+          <AlbumArt album={current_track.album} imagePeriod={500} />
         </div>
         <div className="flex items-center justify-between mb-4">
-          <p className="text-gray-400 text-sm">{formatTime(position)}</p>
+          <p className="text-gray-400 text-sm">{(position)}</p>
           <div className="w-full bg-gray-700 h-1 mx-2 rounded">
             <div
               className="bg-blue-500 h-1 rounded"
               style={{ width: progressWidth }}
             ></div>
           </div>
-          <p className="text-gray-400 text-sm">{formatTime(duration)}</p>
+          <p className="text-gray-400 text-sm">{(duration)}</p>
         </div>
         <div className="flex justify-center gap-4 mb-4">
-          <button className="text-gray-400 hover:text-white" onClick={player?.previousTrack}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-6 h-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M10 19l-7-7 7-7M17 19l-7-7 7-7"
-              />
-            </svg>
-          </button>
-          <button
-            className="text-gray-400 hover:text-white"
-            onClick={() => refreshState((player) => player.togglePlay())}
-          >
-            {paused ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-8 h-8"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 4h4v16H6zm8 0h4v16h-4z"
-                />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-8 h-8"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-                stroke="none"
-              >
-                <path d="M6 4l12 8-12 8z" />
-              </svg>
-            )}
-          </button>
-          <button className="text-gray-400 hover:text-white" onClick={() => refreshState((player) => player.nextTrack())}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-6 h-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M14 5l7 7-7 7M7 5l7 7-7 7"
-              />
-            </svg>
-          </button>
+          <RadioButtons isPaused={paused} />
         </div>
         <div className="flex justify-between mb-4">
           <button className="text-gray-400 hover:text-white" onClick={() => refreshState((player) => player.setVolume(0.5))}>Set Volume to 50%</button>

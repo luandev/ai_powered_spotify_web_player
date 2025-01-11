@@ -93,7 +93,7 @@ const SpotifyConnectProvider = ({ onConnect, onToken, children }: SpotifyConnect
 
   return (
     <>
-      {renderConnectButton}
+      {!profile && renderConnectButton}
       <SpotifyTokenProvider.Provider value={{ token, profile }}>
         {children}  
       </SpotifyTokenProvider.Provider>
