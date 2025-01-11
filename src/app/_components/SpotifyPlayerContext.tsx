@@ -1,8 +1,8 @@
-import { AccessToken } from '@spotify/web-api-ts-sdk';
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
+import { useSpotifyToken } from './spotifyConnectContext';
 
 interface SpotifyPlayerContextProps {
-  player: Spotify.Player;
+  player: Spotify.Player | null;
 }
 
 const SpotifyPlayerContext = createContext<SpotifyPlayerContextProps | undefined>(undefined);
@@ -15,21 +15,37 @@ export const useSpotifyPlayer = () => {
   return context;
 };
 
-export const SpotifyPlayerProvider: React.FC<{ accessToken: string, name: string, volume: number, children: ReactNode }> = ({ accessToken: token, name, volume, children }) => {
+export const SpotifyPlayerProvider: React.FC<{ name: string, volume: number, children: ReactNode }> = ({ name, volume, children }) => {
+  const {token} = useSpotifyToken();
+  const accessToken = token?.access_token;
+
   const [player, setPlayer] = useState<Spotify.Player | null>(null);
+  const isInitialized = useRef<Boolean>(false);
 
   useEffect(() => {
+    if (!accessToken || isInitialized.current) return;
+
+    const cleanup = () => {
+      if (player) player.disconnect();
+      document.body.removeChild(script);
+    };
+
+    const clampedVolume = Math.min(1, Math.max(0, volume)); // Ensure valid volume range
+
     const script = document.createElement("script");
     script.src = "https://sdk.scdn.co/spotify-player.js";
     script.async = true;
+    script.onerror = () => {
+      console.error("Failed to load Spotify Web Playback SDK.");
+    };
 
     document.body.appendChild(script);
 
     window.onSpotifyWebPlaybackSDKReady = () => {
       const player = new window.Spotify.Player({
         name,
-        volume,
-        getOAuthToken: (cb) => { cb(token); },
+        volume: clampedVolume,
+        getOAuthToken: (cb) => { cb(accessToken); },
       });
 
       // Ready
@@ -56,20 +72,14 @@ export const SpotifyPlayerProvider: React.FC<{ accessToken: string, name: string
 
       setPlayer(player);
       player.connect();
-
-      return () => {
-        player.disconnect();
-      };
     };
-  }, [token]);
+    isInitialized.current = true;
+    return cleanup;
+  }, [accessToken, name, volume]);
 
   return ( 
-    <React.Fragment>
-      {player && 
-      <SpotifyPlayerContext.Provider value={{ player: player! }}>
-        {children}
-      </SpotifyPlayerContext.Provider>
-      }
-    </React.Fragment>
+    <SpotifyPlayerContext.Provider value={{ player: player }}>
+      {children}
+    </SpotifyPlayerContext.Provider>
   );
 };

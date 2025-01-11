@@ -1,83 +1,187 @@
-import React, { useEffect, useState } from "react";
-import { useSpotifyPlayer } from "./SpotifyPlayerContext";
+import React, { useCallback, useEffect, useState } from "react";
+import { useSpotifyPlayer } from "./spotifyPlayerContext";
 
-const SpotifyPlayer: React.FC<{name: string}> = ({name}) => {
+type RadioTrackProps = {
+  id: string;
+  name: string;
+  artists: { name: string }[];
+  album: {
+    name: string;
+    uri: string;
+    images: { url: string }[];
+  };
+};
+
+type RadioTrackWindowProps = {
+  current_track: RadioTrackProps;
+  previous_tracks: RadioTrackProps[];
+  next_tracks: RadioTrackProps[];
+};
+
+type RadioPlayerProps = {
+  paused: boolean;
+  duration: number;
+  loading: boolean;
+  position: number;
+  repeat_mode: number;
+  shuffle: boolean;
+  timestamp: number;
+  playback_quality: string;
+  track_window: RadioTrackWindowProps;
+};
+
+const defaultState: RadioPlayerProps = {
+  paused: true,
+  duration: 0,
+  loading: true,
+  position: 0,
+  repeat_mode: 0,
+  shuffle: false,
+  timestamp: 0,
+  playback_quality: "",
+  track_window: {
+    current_track: {
+      id: "",
+      name: "",
+      artists: [],
+      album: {
+        name: "",
+        uri: "",
+        images: []
+      }
+    },
+    previous_tracks: [],
+    next_tracks: []
+  }
+};
+
+const SpotifyPlayer: React.FC<{ name: string }> = ({ name }) => {
   const { player } = useSpotifyPlayer();
 
-  const [state, setState] = useState<Spotify.PlaybackState | null>(null);
+  const [state, setState] = useState<RadioPlayerProps>(defaultState);
   const [isLoaded, setLoaded] = useState(false);
 
+  const composeSpotifyPlayerState = ({
+    paused,
+    duration,
+    loading,
+    position,
+    repeat_mode,
+    shuffle,
+    timestamp,
+    playback_quality,
+    track_window: {
+      current_track,
+      next_tracks,
+      previous_tracks
+    }
+  }: Spotify.PlaybackState): RadioPlayerProps => {
+
+    const getTrack = (track: Spotify.Track): RadioTrackProps => {
+      return {
+        id: track.id ?? "",
+        name: track.name,
+        artists: track.artists,
+        album: track.album
+      }
+    }
+
+    return {
+      paused,
+      duration,
+      loading,
+      position,
+      repeat_mode,
+      shuffle,
+      timestamp,
+      playback_quality,
+      track_window: {
+        current_track: getTrack(current_track),
+        next_tracks: next_tracks.map(getTrack),
+        previous_tracks: previous_tracks.map(getTrack)
+      }
+    }
+  }
+
   const loadState = async () => {
-    const state = await player.getCurrentState();
-    setState(state);
-    player.on("player_state_changed", (state) => {
-      setState(state);
-    });
-  };
+    if (player) {
+      const state = await player.getCurrentState();
+      
+      if (state) {
+        setState(composeSpotifyPlayerState(state));
+      }
 
-  useEffect(() => {
-    loadState()
-      .then(() => setLoaded(true));
-  }, []);
-
-  const formatTime = (seconds: number | undefined = 0) => {
+      setLoaded(true);
+    };
+  }
+  
+  const formatTime = useCallback((seconds: number | undefined = 0) => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
-  };
-
-  const progressWidth = `${((state?.position || 0) / (state?.duration || 0)) * 100}%`;
-
-  if (!isLoaded) {
-    return <div>Loading...</div>;
-  }
-
-  const defaultState = {
-    paused: true,
-    duration: 0,
-    loading: true,
-    position: 0,
-    repeat_mode: 0,
-    shuffle: false,
-    timestamp: 0,
-    playback_quality: "",
-    track_window: {
-      current_track: {
-        name: "",
-        artists: [],
-        album: {
-          images: []
-        }
-      },
-      previous_tracks: [],
-      next_tracks: []
-    }
-  };
-
-  const { 
-    paused, 
-    duration, 
-    loading, 
-    position, 
-    repeat_mode, 
-    shuffle, 
-    timestamp,
-    playback_quality, 
-    track_window 
-  } = state || defaultState;
-  
-  const current_track = track_window?.current_track;
-  const next_tracks = track_window?.next_tracks || [];
-  const previous_tracks = track_window?.previous_tracks || [];
+  }, []);
 
   //inneficient waut to refresh the interface
   //TODO: use a local state to update the interface
+  const refreshState = useCallback( async (action: (Player: Spotify.Player) => Promise<void>) => {
+    try {
+      if (player) {
+        await action(player);
+        const state = await player.getCurrentState();
+        if (state) {
+          setState(composeSpotifyPlayerState(state));
+        }
+      }
+    }
+    catch (error) {
+      console.error("Error performing action:", error);
+    }
+  }, [player?._options.name]);
 
-  const refreshState = (action: () => Promise<void>) => {
-    action()
-      .then(() => loadState())
-      .catch((error) => console.error("Error performing action:", error));
+  useEffect(() => {
+    if (player) {
+
+      loadState();
+
+      player.on("player_state_changed", (state) => {
+        setState(composeSpotifyPlayerState(state));
+      });
+
+      return () => {
+        player.removeListener("player_state_changed");
+      }
+    }
+
+  }, [player?._options.name]);
+
+
+  const progressWidth = `${((state?.position || 0) / (state?.duration || 0)) * 100}%`;
+
+  const {
+    paused,
+    duration,
+    loading,
+    position,
+    repeat_mode,
+    shuffle,
+    timestamp,
+    playback_quality,
+    track_window: {
+      current_track,
+      next_tracks,
+      previous_tracks
+    }
+  } = state;
+
+  if (!isLoaded || loading || current_track.name === "") {
+    return <>
+      <div className="bg-gray-800 text-white min-h-screen flex justify-center items-center">
+        <div className="bg-gray-900 rounded-lg shadow-lg w-96 animate-pulse p-6">
+        </div>
+      </div>
+    </>;
   }
+
   return (
     <div className="bg-gray-800 text-white min-h-screen flex justify-center items-center">
       <div className="bg-gray-900 rounded-lg shadow-lg w-96 p-6">
@@ -104,7 +208,7 @@ const SpotifyPlayer: React.FC<{name: string}> = ({name}) => {
           <p className="text-gray-400 text-sm">{formatTime(duration)}</p>
         </div>
         <div className="flex justify-center gap-4 mb-4">
-          <button className="text-gray-400 hover:text-white" onClick={player.previousTrack}>
+          <button className="text-gray-400 hover:text-white" onClick={player?.previousTrack}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="w-6 h-6"
@@ -122,7 +226,7 @@ const SpotifyPlayer: React.FC<{name: string}> = ({name}) => {
           </button>
           <button
             className="text-gray-400 hover:text-white"
-            onClick={() => refreshState(() => player.togglePlay())}
+            onClick={() => refreshState((player) => player.togglePlay())}
           >
             {paused ? (
               <svg
@@ -151,7 +255,7 @@ const SpotifyPlayer: React.FC<{name: string}> = ({name}) => {
               </svg>
             )}
           </button>
-          <button className="text-gray-400 hover:text-white" onClick={player.nextTrack}>
+          <button className="text-gray-400 hover:text-white" onClick={() => refreshState((player) => player.nextTrack())}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="w-6 h-6"
@@ -169,8 +273,8 @@ const SpotifyPlayer: React.FC<{name: string}> = ({name}) => {
           </button>
         </div>
         <div className="flex justify-between mb-4">
-          <button className="text-gray-400 hover:text-white" onClick={() => refreshState(() => player.setVolume(0.5))}>Set Volume to 50%</button>
-          <button className="text-gray-400 hover:text-white" onClick={() => player.seek(position + 15000)}>Seek +15s</button>
+          <button className="text-gray-400 hover:text-white" onClick={() => refreshState((player) => player.setVolume(0.5))}>Set Volume to 50%</button>
+          <button className="text-gray-400 hover:text-white" onClick={() => refreshState((player) => player.seek(position + 15000))}>Seek +15s</button>
         </div>
         <div className="text-center mb-4">
           <p className="text-gray-400">Repeat Mode: {repeat_mode}</p>
