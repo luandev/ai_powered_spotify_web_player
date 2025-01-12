@@ -3,6 +3,7 @@ import { useSpotifyPlayer } from "./spotifyPlayerContext";
 import AlbumArt from "./playerComponents/albumArt";
 import { defaultState, RadioPlayerProps, RadioTrackProps } from "./types";
 import RadioButtons from "./playerComponents/radioButtons";
+import Timecode from "./playerComponents/timecode";
 
 const SpotifyPlayer: React.FC<{ name: string }> = ({ name }) => {
   const { player } = useSpotifyPlayer();
@@ -64,11 +65,6 @@ const SpotifyPlayer: React.FC<{ name: string }> = ({ name }) => {
     };
   }
   
-  const formatTime = useCallback((seconds: number | undefined = 0) => {
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
-  }, []);
 
   //inneficient waut to refresh the interface
   //TODO: use a local state to update the interface
@@ -103,9 +99,7 @@ const SpotifyPlayer: React.FC<{ name: string }> = ({ name }) => {
 
   }, [player?._options.name]);
 
-
-  const progressWidth = `${((state?.position || 0) / (state?.duration || 0)) * 100}%`;
-
+  
   const {
     paused,
     duration,
@@ -122,12 +116,12 @@ const SpotifyPlayer: React.FC<{ name: string }> = ({ name }) => {
     }
   } = state;
 
-  if (!isLoaded || current_track.name === "") {
+  if (!isLoaded) {
     return <>
-      {/* <div className="bg-gray-800 text-white min-h-screen flex justify-center items-center">
+      <div className="bg-gray-800 text-white min-h-screen flex justify-center items-center">
         <div className="bg-gray-900 rounded-lg shadow-lg w-96 animate-pulse p-6">
         </div>
-      </div> */}
+      </div> 
     </>;
   }
 
@@ -143,21 +137,13 @@ const SpotifyPlayer: React.FC<{ name: string }> = ({ name }) => {
           <AlbumArt album={current_track.album} imagePeriod={500} />
         </div>
         <div className="flex items-center justify-between mb-4">
-          <p className="text-gray-400 text-sm">{(position)}</p>
-          <div className="w-full bg-gray-700 h-1 mx-2 rounded">
-            <div
-              className="bg-blue-500 h-1 rounded"
-              style={{ width: progressWidth }}
-            ></div>
-          </div>
-          <p className="text-gray-400 text-sm">{(duration)}</p>
+          <Timecode duration={duration} position={position} isPaused={paused} />
         </div>
         <div className="flex justify-center gap-4 mb-4">
           <RadioButtons isPaused={paused} />
         </div>
         <div className="flex justify-between mb-4">
           <button className="text-gray-400 hover:text-white" onClick={() => refreshState((player) => player.setVolume(0.5))}>Set Volume to 50%</button>
-          <button className="text-gray-400 hover:text-white" onClick={() => refreshState((player) => player.seek(position + 15000))}>Seek +15s</button>
         </div>
         <div className="text-center mb-4">
           <p className="text-gray-400">Repeat Mode: {repeat_mode}</p>
