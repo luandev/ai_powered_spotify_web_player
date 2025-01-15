@@ -42,7 +42,7 @@ This project is an AI-powered Spotify web player built using the T3 Stack, which
 1. Clone the repository:
 
   ```sh
-  git clone <repository-url>
+  git clone https://github.com/luandev/ai_powered_spotify_web_player.git
   ```
 
 2. Install dependencies:
