@@ -79,7 +79,7 @@ const SpotifyConnectProvider = ({ onConnect, onToken, children }: SpotifyConnect
   const renderConnectButton = (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-purple-500 to-blue-500 text-white">
       <div className="text-center">
-        <h1 className="text-5xl font-bold mb-4">Welcome to The Spirit of Radio</h1>
+        <h1 className="text-5xl font-bold mb-4">Welcome to the Radio</h1>
         <p className="text-lg mb-8">Connect to Spotify and enjoy your favorite music</p>
         <button
           onClick={setShouldConnect.bind(null, true)}
