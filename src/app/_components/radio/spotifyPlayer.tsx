@@ -1,42 +1,14 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { useSpotifyPlayer } from "./spotifyPlayerContext";
+import React from "react";
 import AlbumArt from "./playerComponents/albumArt";
-import { defaultState, RadioPlayerProps, RadioTrackProps } from "./types";
 import RadioButtons from "./playerComponents/radioButtons";
 import Timecode from "./playerComponents/timecode";
+import useSpotifySync from "./spotifySyncState";
 
 const SpotifyPlayer: React.FC<{ name: string }> = ({ name }) => {
-  const { player } = useSpotifyPlayer();
 
-  const [state, setState] = useState<RadioPlayerProps>(defaultState);
-  const [isLoaded, setLoaded] = useState(false);
-
-  const composeSpotifyPlayerState = ({
-    paused,
-    duration,
-    loading,
-    position,
-    repeat_mode,
-    shuffle,
-    timestamp,
-    playback_quality,
-    track_window: {
-      current_track,
-      next_tracks,
-      previous_tracks
-    }
-  }: Spotify.PlaybackState): RadioPlayerProps => {
-
-    const getTrack = (track: Spotify.Track): RadioTrackProps => {
-      return {
-        id: track.id ?? "",
-        name: track.name,
-        artists: track.artists,
-        album: track.album
-      }
-    }
-
-    return {
+  const {
+    isInitialStateLoaded,
+    state: {
       paused,
       duration,
       loading,
@@ -46,77 +18,15 @@ const SpotifyPlayer: React.FC<{ name: string }> = ({ name }) => {
       timestamp,
       playback_quality,
       track_window: {
-        current_track: getTrack(current_track),
-        next_tracks: next_tracks.map(getTrack),
-        previous_tracks: previous_tracks.map(getTrack)
+        current_track,
+        next_tracks,
+        previous_tracks
       }
     }
-  }
+  } = useSpotifySync()
 
-  const loadState = async () => {
-    if (player) {
-      const state = await player.getCurrentState();
-      
-      if (state) {
-        setState(composeSpotifyPlayerState(state));
-      }
 
-      setLoaded(true);
-    };
-  }
-  
-
-  //inneficient waut to refresh the interface
-  //TODO: use a local state to update the interface
-  const refreshState = useCallback( async (action: (Player: Spotify.Player) => Promise<void>) => {
-    try {
-      if (player) {
-        await action(player);
-        const state = await player.getCurrentState();
-        if (state) {
-          setState(composeSpotifyPlayerState(state));
-        }
-      }
-    }
-    catch (error) {
-      console.error("Error performing action:", error);
-    }
-  }, [player?._options.name]);
-
-  useEffect(() => {
-    if (player) {
-
-      loadState();
-
-      player.on("player_state_changed", (state) => {
-        setState(composeSpotifyPlayerState(state));
-      });
-
-      return () => {
-        player.removeListener("player_state_changed");
-      }
-    }
-
-  }, [player?._options.name]);
-
-  
-  const {
-    paused,
-    duration,
-    loading,
-    position,
-    repeat_mode,
-    shuffle,
-    timestamp,
-    playback_quality,
-    track_window: {
-      current_track,
-      next_tracks,
-      previous_tracks
-    }
-  } = state;
-
-  if (!isLoaded) {
+  if (!isInitialStateLoaded) {
     return <>
       <div className="bg-gray-800 text-white min-h-screen flex justify-center items-center">
         <div className="bg-gray-900 rounded-lg shadow-lg w-96 animate-pulse p-6">
@@ -143,7 +53,7 @@ const SpotifyPlayer: React.FC<{ name: string }> = ({ name }) => {
           <RadioButtons isPaused={paused} />
         </div>
         <div className="flex justify-between mb-4">
-          <button className="text-gray-400 hover:text-white" onClick={() => refreshState((player) => player.setVolume(0.5))}>Set Volume to 50%</button>
+          {/* <button className="text-gray-400 hover:text-white" onClick={() => player?.setVolume(0.5)}>Set Volume to 50%</button> */}
         </div>
         <div className="text-center mb-4">
           <p className="text-gray-400">Repeat Mode: {repeat_mode}</p>

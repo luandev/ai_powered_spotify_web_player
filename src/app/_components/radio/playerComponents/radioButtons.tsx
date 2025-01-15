@@ -1,4 +1,4 @@
-import React, { useOptimistic, useState } from "react"
+import React, { useCallback, useOptimistic, useRef, useState, useTransition } from "react"
 import { useSpotifyPlayer } from "../spotifyPlayerContext"
 
 type RadioButtonsProps = {
@@ -66,18 +66,38 @@ const next = (<svg
 
 const RadioButtons: React.FC<RadioButtonsProps> = (componentProps) => {
   const [state, addOptimisticUpdate] = useOptimistic(componentProps);
+  const [_isPending, startTransition] = useTransition();
+  const debounceTimer = useRef<NodeJS.Timeout>();
   const { player } = useSpotifyPlayer();
 
-  const toggleHandler = async () => {
-    addOptimisticUpdate((state) => ({ ...state, isPaused: !state.isPaused }));
-    try {
-      await player?.togglePlay();
-    } catch (error) {
-      console.error("Toggle failed", error);
-      addOptimisticUpdate((state) => ({ ...state, isPaused: !state.isPaused }));
+  const debounce = <T extends unknown[]>(func: (...args: T) => void, delay: number) => ((...args: T) => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current)
     }
+    debounceTimer.current = setTimeout(() => {
+      func(...args);
+    }, delay)
+  })
+
+  const toggleHandler:React.MouseEventHandler<HTMLButtonElement> = () => {
+    startTransition(async () => {
+      try {
+        await player?.togglePlay();
+      } catch (error) {
+        console.error("Toggle failed", error);
+        addOptimisticUpdate((state) => ({ ...state, isPaused: !state.isPaused }));
+      }
+    })
+    addOptimisticUpdate((state) => ({ ...state, isPaused: !state.isPaused }));
   };
 
+
+  const debouncedToggleHandler = useCallback(
+    debounce(toggleHandler, 300),
+    [toggleHandler] // Dependencies
+  );
+
+  
   if (!player) {
     return (
       <div className="flex space-x-4">
@@ -93,7 +113,7 @@ const RadioButtons: React.FC<RadioButtonsProps> = (componentProps) => {
       <button className="text-gray-400 hover:text-white" onClick={() => player.previousTrack()} aria-label="Previous track">
         {prev}
       </button>
-      <button className="text-gray-400 hover:text-white" onClick={toggleHandler} aria-label={state.isPaused ? "Play" : "Pause"}>
+      <button className="text-gray-400 hover:text-white" onClick={debouncedToggleHandler} aria-label={state.isPaused ? "Play" : "Pause"}>
         {state.isPaused ? pause : play}
       </button>
       <button className="text-gray-400 hover:text-white" onClick={() => player.nextTrack()} aria-label="Next track">

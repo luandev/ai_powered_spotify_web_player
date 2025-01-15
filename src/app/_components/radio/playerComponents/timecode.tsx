@@ -65,7 +65,7 @@ const Timecode: React.FC<TimecodeProps> = ({ position, duration, isPaused }) => 
 
   return(
     <>
-      <p className="text-gray-400 text-sm">{formatTime(clockPosition)}</p>
+      <p className="w-24 text-center text-gray-400 text-sm">{formatTime(clockPosition)}</p>
       <div className="w-full bg-gray-700 h-1 mx-2 rounded">
         <div
           // onClick={seek}
@@ -73,7 +73,7 @@ const Timecode: React.FC<TimecodeProps> = ({ position, duration, isPaused }) => 
           style={{ width: `${getProgres()}%` }}
         ></div>
       </div>
-      <p className="text-gray-400 text-sm">{formatTime(duration)}</p>
+      <p className="w-24 text-center text-gray-400 text-sm">{formatTime(duration)}</p>
     </>
   )
 };
