@@ -16,7 +16,7 @@ const RadioApp: React.FC = () => {
 
   return (
     <ConnectProvider>
-      <SpotifyPlayerContextProvider name={name.current} volume={1}>
+      <SpotifyPlayerContextProvider name={name.current}>
         <SpotifyPlayer name={name.current} />
       </SpotifyPlayerContextProvider>
     </ConnectProvider>

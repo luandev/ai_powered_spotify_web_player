@@ -1,5 +1,5 @@
 import { SpotifyApi } from "@spotify/web-api-ts-sdk";
-import { env } from "~/env";
+import { env } from "@/env";
 import { NextResponse } from 'next/server';
 
 

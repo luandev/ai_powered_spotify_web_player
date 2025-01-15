@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { useSpotifyToken } from './spotifyConnectProvider';
 import { SpotifyPlayerContextProps } from '../types';
+import { SpotifyApi } from '@spotify/web-api-ts-sdk';
+import { env } from '@/env';
+
 
 const SpotifyPlayerContext = createContext<SpotifyPlayerContextProps | undefined>(undefined);
 
@@ -12,22 +15,19 @@ export const useSpotifyPlayerContext = () => {
   return context;
 };
 
-export const SpotifyPlayerContextProvider: React.FC<{ name: string, volume: number, children: ReactNode }> = ({ name, volume, children }) => {
+export const SpotifyPlayerContextProvider: React.FC<{ name: string, children: ReactNode }> = ({ name, children }) => {
+  
   const { token } = useSpotifyToken();
-  const accessToken = token?.access_token;
-
   const [spotifyPlayer, setSpotifyPlayer] = useState<Spotify.Player | null>(null);
   const isPlayerInitialized = useRef<Boolean>(false);
 
   useEffect(() => {
-    if (!accessToken || isPlayerInitialized.current) return;
+    if (!token || isPlayerInitialized.current) return;
 
     const cleanupPlayer = () => {
       if (spotifyPlayer) spotifyPlayer.disconnect();
       document.body.removeChild(spotifyScript);
     };
-
-    const clampedVolume = Math.min(1, Math.max(0, volume)); // Ensure valid volume range
 
     const spotifyScript = document.createElement("script");
     spotifyScript.src = "https://sdk.scdn.co/spotify-player.js";
@@ -41,13 +41,16 @@ export const SpotifyPlayerContextProvider: React.FC<{ name: string, volume: numb
     window.onSpotifyWebPlaybackSDKReady = () => {
       const player = new window.Spotify.Player({
         name,
-        volume: clampedVolume,
-        getOAuthToken: (cb) => { cb(accessToken); },
+        getOAuthToken: (cb) => { cb(token.access_token); },
       });
 
       // Ready
       player.addListener('ready', ({ device_id }) => {
         console.log('Ready with Device ID', device_id);
+        const sdk = SpotifyApi.withAccessToken(env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID, token);
+        sdk.player.transferPlayback([device_id], true).then(() => {
+          console.log('Playback transer');
+        });
       });
 
       // Not Ready
@@ -72,7 +75,7 @@ export const SpotifyPlayerContextProvider: React.FC<{ name: string, volume: numb
     };
     isPlayerInitialized.current = true;
     return cleanupPlayer;
-  }, [accessToken, name, volume]);
+  }, [token?.access_token, name]);
 
   return ( 
     <SpotifyPlayerContext.Provider value={{ player: spotifyPlayer }}>

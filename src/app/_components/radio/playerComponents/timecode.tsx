@@ -5,9 +5,10 @@ type TimecodeProps = {
   position: number;
   duration: number;
   isPaused: boolean;
+  seek: (pos_ms: number) =>Promise<void>
 }
 
-const Timecode: React.FC<TimecodeProps> = ({ position, duration, isPaused }) => {
+const Timecode: React.FC<TimecodeProps> = ({ position, duration, isPaused, seek }) => {
   const [clockPosition, setPosition] = useState(position)
   const timer = useRef<NodeJS.Timeout>();
   

@@ -1,7 +1,7 @@
-import { createInterface } from "~/server/services/djService";
+import { createInterface } from "@/server/services/djService";
 import { z } from "zod";
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 
 const tokenInput = z.object({
   token: z.object({

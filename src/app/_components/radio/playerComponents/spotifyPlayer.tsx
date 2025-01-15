@@ -7,6 +7,13 @@ import useSyncState from "../spotifyApi/spotifySyncState";
 const SpotifyPlayer: React.FC<{ name: string }> = ({ name }) => {
 
   const {
+    nextTrack,
+    pause,
+    previousTrack,
+    resume,
+    seek,
+    setVolume,
+    togglePlay,
     isInitialStateLoaded,
     state: {
       paused,
@@ -47,10 +54,10 @@ const SpotifyPlayer: React.FC<{ name: string }> = ({ name }) => {
           <AlbumArt album={current_track.album} imagePeriod={500} />
         </div>
         <div className="flex items-center justify-between mb-4">
-          <Timecode duration={duration} position={position} isPaused={paused} />
+          <Timecode seek={seek} duration={duration} position={position} isPaused={paused} />
         </div>
         <div className="flex justify-center gap-4 mb-4">
-          <RadioButtons isPaused={paused} />
+          <RadioButtons previousTrack={previousTrack} nextTrack={nextTrack} togglePlay={togglePlay} isPaused={paused} />
         </div>
         <div className="flex justify-between mb-4">
           {/* <button className="text-gray-400 hover:text-white" onClick={() => player?.setVolume(0.5)}>Set Volume to 50%</button> */}

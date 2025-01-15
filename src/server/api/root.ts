@@ -1,7 +1,7 @@
-import { postRouter } from "~/server/api/routers/post";
-import { spotifyRouter } from "~/server/api/routers/spotify";
+import { postRouter } from "@/server/api/routers/post";
+import { spotifyRouter } from "@/server/api/routers/spotify";
 
-import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
+import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 
 /**
  * This is the primary router for your server.

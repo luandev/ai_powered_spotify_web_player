@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useContext, createContext } from "react";
 import { SpotifyApi, AccessToken } from "@spotify/web-api-ts-sdk";
-import { UserJson } from "~/server/services/types";
-import { api } from "~/trpc/react";
+import { UserJson } from "@/server/services/types";
+import { api } from "@/trpc/react";
 
 interface SpotifyConnectProps {
   onConnect?: (user: UserJson) => void;

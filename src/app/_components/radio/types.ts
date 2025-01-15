@@ -18,6 +18,7 @@ export type RadioTrackWindowProps = {
 };
 
 export type RadioPlayerProps = {
+  volume: number;
   paused: boolean;
   duration: number;
   loading: boolean;
@@ -30,6 +31,7 @@ export type RadioPlayerProps = {
 };
 
 export const defaultState: RadioPlayerProps = {
+  volume: 0.5,
   paused: true,
   duration: 0,
   loading: true,

@@ -1,5 +1,5 @@
-import { SpotifyApi, UserProfile, PlaybackState, AccessToken } from "@spotify/web-api-ts-sdk";
-import { env } from "~/env";
+import { SpotifyApi, AccessToken } from "@spotify/web-api-ts-sdk";
+import { env } from "@/env";
 import { SpotifyProfile } from "./types";
 
 export const composeSpotifyProfile = async (accessToken: AccessToken): Promise<SpotifyProfile> => {
