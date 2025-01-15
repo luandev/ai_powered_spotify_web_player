@@ -1,43 +1,42 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
-import { useSpotifyToken } from './spotifyConnectContext';
-import { SpotifyPlayerContextProps } from './types';
-
+import { useSpotifyToken } from './spotifyConnectProvider';
+import { SpotifyPlayerContextProps } from '../types';
 
 const SpotifyPlayerContext = createContext<SpotifyPlayerContextProps | undefined>(undefined);
 
-export const useSpotifyPlayer = () => {
+export const useSpotifyPlayerContext = () => {
   const context = useContext(SpotifyPlayerContext);
   if (!context) {
-    throw new Error('useSpotifyPlayer must be used within a SpotifyPlayerProvider');
+    throw new Error('useSpotifyPlayerContext must be used within a SpotifyPlayerContextProvider');
   }
   return context;
 };
 
-export const SpotifyPlayerProvider: React.FC<{ name: string, volume: number, children: ReactNode }> = ({ name, volume, children }) => {
-  const {token} = useSpotifyToken();
+export const SpotifyPlayerContextProvider: React.FC<{ name: string, volume: number, children: ReactNode }> = ({ name, volume, children }) => {
+  const { token } = useSpotifyToken();
   const accessToken = token?.access_token;
 
-  const [player, setPlayer] = useState<Spotify.Player | null>(null);
-  const isInitialized = useRef<Boolean>(false);
+  const [spotifyPlayer, setSpotifyPlayer] = useState<Spotify.Player | null>(null);
+  const isPlayerInitialized = useRef<Boolean>(false);
 
   useEffect(() => {
-    if (!accessToken || isInitialized.current) return;
+    if (!accessToken || isPlayerInitialized.current) return;
 
-    const cleanup = () => {
-      if (player) player.disconnect();
-      document.body.removeChild(script);
+    const cleanupPlayer = () => {
+      if (spotifyPlayer) spotifyPlayer.disconnect();
+      document.body.removeChild(spotifyScript);
     };
 
     const clampedVolume = Math.min(1, Math.max(0, volume)); // Ensure valid volume range
 
-    const script = document.createElement("script");
-    script.src = "https://sdk.scdn.co/spotify-player.js";
-    script.async = true;
-    script.onerror = () => {
+    const spotifyScript = document.createElement("script");
+    spotifyScript.src = "https://sdk.scdn.co/spotify-player.js";
+    spotifyScript.async = true;
+    spotifyScript.onerror = () => {
       console.error("Failed to load Spotify Web Playback SDK.");
     };
 
-    document.body.appendChild(script);
+    document.body.appendChild(spotifyScript);
 
     window.onSpotifyWebPlaybackSDKReady = () => {
       const player = new window.Spotify.Player({
@@ -68,15 +67,15 @@ export const SpotifyPlayerProvider: React.FC<{ name: string, volume: number, chi
         console.error(message);
       });
 
-      setPlayer(player);
+      setSpotifyPlayer(player);
       player.connect();
     };
-    isInitialized.current = true;
-    return cleanup;
+    isPlayerInitialized.current = true;
+    return cleanupPlayer;
   }, [accessToken, name, volume]);
 
   return ( 
-    <SpotifyPlayerContext.Provider value={{ player: player }}>
+    <SpotifyPlayerContext.Provider value={{ player: spotifyPlayer }}>
       {children}
     </SpotifyPlayerContext.Provider>
   );

@@ -1,5 +1,5 @@
 import React, { useCallback, useOptimistic, useRef, useState, useTransition } from "react"
-import { useSpotifyPlayer } from "../spotifyPlayerContext"
+import { useSpotifyPlayerContext } from "../spotifyApi/playerContextProvider"
 
 type RadioButtonsProps = {
   isPaused: boolean;
@@ -68,7 +68,7 @@ const RadioButtons: React.FC<RadioButtonsProps> = (componentProps) => {
   const [state, addOptimisticUpdate] = useOptimistic(componentProps);
   const [_isPending, startTransition] = useTransition();
   const debounceTimer = useRef<NodeJS.Timeout>();
-  const { player } = useSpotifyPlayer();
+  const { player } = useSpotifyPlayerContext();
 
   const debounce = <T extends unknown[]>(func: (...args: T) => void, delay: number) => ((...args: T) => {
     if (debounceTimer.current) {
@@ -96,7 +96,6 @@ const RadioButtons: React.FC<RadioButtonsProps> = (componentProps) => {
     debounce(toggleHandler, 300),
     [toggleHandler] // Dependencies
   );
-
   
   if (!player) {
     return (

@@ -1,9 +1,8 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { useSpotifyPlayer } from "./spotifyPlayerContext";
-import { defaultState, RadioPlayerProps, RadioTrackProps } from "./types";
+import { useSpotifyPlayerContext } from "./playerContextProvider";
+import { defaultState, RadioPlayerProps, RadioTrackProps } from "../types";
 
-
-const composeSpotifyPlayerState = ({
+const mapSpotifyPlaybackStateToRadioPlayerProps = ({
   paused,
   duration,
   loading,
@@ -19,7 +18,7 @@ const composeSpotifyPlayerState = ({
   }
 }: Spotify.PlaybackState): RadioPlayerProps => {
 
-  const getTrack = (track: Spotify.Track): RadioTrackProps => {
+  const mapSpotifyTrackToRadioTrackProps = (track: Spotify.Track): RadioTrackProps => {
     return {
       id: track.id ?? "",
       name: track.name,
@@ -38,28 +37,28 @@ const composeSpotifyPlayerState = ({
     timestamp,
     playback_quality,
     track_window: {
-      current_track: getTrack(current_track),
-      next_tracks: next_tracks.map(getTrack),
-      previous_tracks: previous_tracks.map(getTrack)
+      current_track: mapSpotifyTrackToRadioTrackProps(current_track),
+      next_tracks: next_tracks.map(mapSpotifyTrackToRadioTrackProps),
+      previous_tracks: previous_tracks.map(mapSpotifyTrackToRadioTrackProps)
     }
   }
 }
 
-type SpotifySyncProps = { isInitialStateLoaded: boolean, state: RadioPlayerProps };
+type SpotifySyncState = { isInitialStateLoaded: boolean, state: RadioPlayerProps };
 
-const useSpotifySync = (): SpotifySyncProps => {
-  const { player } = useSpotifyPlayer();
+const useSpotifySyncState = (): SpotifySyncState => {
+  const { player } = useSpotifyPlayerContext();
   
   const [localState, setLocalState] = useState<RadioPlayerProps>(defaultState);
-  const [isInitialStateLoaded, setInitialStateLoaded] = useState(false);
+  const [isInitialStateLoaded, setIsInitialStateLoaded] = useState(false);
 
   const loadInitialState = async () => {
     if (player) {
-      const initState = await player.getCurrentState();
-      if (initState) {
-        setLocalState(composeSpotifyPlayerState(initState));
+      const initialState = await player.getCurrentState();
+      if (initialState) {
+        setLocalState(mapSpotifyPlaybackStateToRadioPlayerProps(initialState));
       }
-      setInitialStateLoaded(true);
+      setIsInitialStateLoaded(true);
     };
   }
 
@@ -71,7 +70,7 @@ const useSpotifySync = (): SpotifySyncProps => {
     (callback) => {
       if (player) {
         player.on("player_state_changed", (state) => {
-          const radioState = composeSpotifyPlayerState(state);
+          const radioState = mapSpotifyPlaybackStateToRadioPlayerProps(state);
           setLocalState(radioState)
           callback();
         });
@@ -91,4 +90,4 @@ const useSpotifySync = (): SpotifySyncProps => {
   };
 }
 
-export default useSpotifySync;
+export default useSpotifySyncState;

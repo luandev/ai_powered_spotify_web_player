@@ -5,27 +5,27 @@ import { SpotifyApi, AccessToken } from "@spotify/web-api-ts-sdk";
 import { UserJson } from "~/server/services/types";
 import { api } from "~/trpc/react";
 
-interface SpotifyConnectComponent {
-  onConnect?: (userInterface: UserJson) => void;
+interface SpotifyConnectProps {
+  onConnect?: (user: UserJson) => void;
   onToken?: (token: AccessToken) => void;
   children: React.ReactNode;
 }
 
-type SpotifyTokenProps = {
+type SpotifyTokenContextProps = {
   token: AccessToken | null;
   profile: UserJson | null;
 }
 
-const SpotifyTokenProvider = createContext<SpotifyTokenProps | undefined>(undefined);
+const SpotifyTokenContext = createContext<SpotifyTokenContextProps | undefined>(undefined);
 export const useSpotifyToken = () => {
-  const context = useContext(SpotifyTokenProvider);
+  const context = useContext(SpotifyTokenContext);
   if (!context) {
     throw new Error('useSpotifyToken must be used within a SpotifyTokenProvider');
   }
   return context;
 }
 
-const SpotifyConnectProvider = ({ onConnect, onToken, children }: SpotifyConnectComponent) => {
+const SpotifyConnectProvider = ({ onConnect, onToken, children }: SpotifyConnectProps) => {
   const [profile, setProfile] = useState<UserJson | null>(null);
   const [token, setToken] = useState<AccessToken | null>(null);
   const [shouldConnect, setShouldConnect] = useState<boolean>(false);
@@ -39,11 +39,11 @@ const SpotifyConnectProvider = ({ onConnect, onToken, children }: SpotifyConnect
   };
 
   const handleUserInterface = async (token: AccessToken) => {
-    const userInterface = await createUserInterface.mutateAsync({ token });
-    setProfile(userInterface);
+    const user = await createUserInterface.mutateAsync({ token });
+    setProfile(user);
     
     if(onConnect) {
-      onConnect(userInterface);
+      onConnect(user);
     }
   };
 
@@ -94,9 +94,9 @@ const SpotifyConnectProvider = ({ onConnect, onToken, children }: SpotifyConnect
   return (
     <>
       {!profile && renderConnectButton}
-      <SpotifyTokenProvider.Provider value={{ token, profile }}>
+      <SpotifyTokenContext.Provider value={{ token, profile }}>
         {children}  
-      </SpotifyTokenProvider.Provider>
+      </SpotifyTokenContext.Provider>
     </>
   );
 };

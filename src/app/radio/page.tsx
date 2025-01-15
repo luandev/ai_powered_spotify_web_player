@@ -1,12 +1,11 @@
 import { HydrateClient } from "~/trpc/server";
 import React from "react";
-import SpotifyApp from "../_components/radio/spotifyApp";
-
+import RadioApp from "../_components/radio/radioApp";
 
 export default function Radio() {
   return (
     <HydrateClient>
-        <SpotifyApp />
+      <RadioApp />
     </HydrateClient>
   );
 }

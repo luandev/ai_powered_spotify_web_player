@@ -1,8 +1,8 @@
 import React from "react";
-import AlbumArt from "./playerComponents/albumArt";
-import RadioButtons from "./playerComponents/radioButtons";
-import Timecode from "./playerComponents/timecode";
-import useSpotifySync from "./spotifySyncState";
+import AlbumArt from "./albumArt";
+import RadioButtons from "./radioButtons";
+import Timecode from "./timecode";
+import useSyncState from "../spotifyApi/spotifySyncState";
 
 const SpotifyPlayer: React.FC<{ name: string }> = ({ name }) => {
 
@@ -23,7 +23,7 @@ const SpotifyPlayer: React.FC<{ name: string }> = ({ name }) => {
         previous_tracks
       }
     }
-  } = useSpotifySync()
+  } = useSyncState()
 
 
   if (!isInitialStateLoaded) {
