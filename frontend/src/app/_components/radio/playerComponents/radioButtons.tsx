@@ -92,7 +92,6 @@ const RadioButtons: React.FC<RadioButtonsProps> = ({isPaused, nextTrack, toggleP
     addOptimisticUpdate((state) => ({ ...state, isPaused: !state.isPaused }));
   };
 
-
   const debouncedToggleHandler = useCallback(
     debounce(toggleHandler, 300),
     [toggleHandler] // Dependencies

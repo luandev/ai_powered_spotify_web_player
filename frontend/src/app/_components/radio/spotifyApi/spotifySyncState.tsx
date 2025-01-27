@@ -1,6 +1,7 @@
-import { useEffect, useReducer, useState, useSyncExternalStore } from "react";
+import { Reducer, ReducerWithoutAction, useEffect, useReducer, useState, useSyncExternalStore } from "react";
 import { useSpotifyPlayerContext } from "./playerContextProvider";
 import { defaultState, RadioPlayerProps, RadioTrackProps } from "../types";
+import { UserJson } from "@/server/services/types";
 
 type SpotifySyncState = { isInitialStateLoaded: boolean; state: RadioPlayerProps };
 type SpotifyActions = {
@@ -11,9 +12,11 @@ type SpotifyActions = {
   pause: () => Promise<void>;
   previousTrack: () => Promise<void>;
   nextTrack: () => Promise<void>;
+  setProfile: (profile: UserJson) => Promise<void>
 };
 
 type Action =
+  | { type: "LOAD_PROFILE"; payload: UserJson }
   | { type: "LOAD_INITIAL_STATE"; payload: RadioPlayerProps }
   | { type: "UPDATE_STATE"; payload: RadioPlayerProps }
   | { type: "SEEK", payload: number }
@@ -61,8 +64,10 @@ const mapSpotifyPlaybackStateToRadioPlayerProps = ({
   };
 };
 
-const reducer = (state: RadioPlayerProps, action: Action): RadioPlayerProps => {
+const reducer = (state: RadioPlayerProps, action: Action ): RadioPlayerProps => {
   switch (action.type) {
+    case "LOAD_PROFILE":
+      return { ...state, profile: action.payload };
     case "LOAD_INITIAL_STATE":
       return { ...state, ...action.payload };
     case "UPDATE_STATE":
@@ -183,10 +188,18 @@ const useSpotifySyncState = (): SpotifySyncState & SpotifyActions => {
     }
   };
 
+  const setProfile = async (profile: UserJson) => {
+    if (player) {
+      dispatch({ type: "LOAD_PROFILE", payload: profile });
+    }
+  };
+
+
   return {
     isInitialStateLoaded,
     state: syncState,
     togglePlay,
+    setProfile,
     setVolume,
     seek,
     resume,

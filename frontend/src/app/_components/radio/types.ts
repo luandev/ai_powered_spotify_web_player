@@ -1,3 +1,5 @@
+import { UserJson } from "@/server/services/types";
+
 export type RadioAlbumProps = {
   name: string;
   uri: string;
@@ -28,6 +30,7 @@ export type RadioPlayerProps = {
   timestamp: number;
   playback_quality: string;
   track_window: RadioTrackWindowProps;
+  profile?: UserJson
 };
 
 export const defaultState: RadioPlayerProps = {
